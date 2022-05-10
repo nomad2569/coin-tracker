@@ -1,11 +1,10 @@
 import { useQuery } from 'react-query';
-import { useLocation, useOutletContext } from 'react-router-dom';
+import { useOutletContext } from 'react-router-dom';
 import { fetchCoinohlcv } from '../api';
 import ApexChart from 'react-apexcharts';
 import styled from 'styled-components';
-interface IChart {
-  coinId?: string;
-}
+import { useRecoilValue } from 'recoil';
+import { isDarkAtom } from '../atoms';
 export interface IOhlcv {
   time_open: Date;
   time_close: Date;
@@ -34,7 +33,7 @@ const Chart = () => {
   const { isLoading, data } = useQuery<IOhlcv[]>(['ohlcv', coinId], () =>
     fetchCoinohlcv(coinId)
   );
-  console.log(data);
+  const isDark = useRecoilValue(isDarkAtom);
   return (
     <ChartWrapper>
       {isLoading ? (
@@ -50,7 +49,7 @@ const Chart = () => {
           ]}
           options={{
             theme: {
-              mode: 'dark',
+              mode: isDark ? 'dark' : 'light',
             },
             chart: {
               width: 300,
@@ -70,7 +69,7 @@ const Chart = () => {
                 show: false,
               },
               type: 'datetime',
-              categories: data!.map((tmp) => tmp.time_close),
+              categories: data?.map((tmp) => tmp.time_close),
             },
             yaxis: {
               show: false,

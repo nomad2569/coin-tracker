@@ -1,10 +1,42 @@
-import { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { useQuery } from 'react-query';
-import { Link, Route, Navigate, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import { useRecoilValue, useSetRecoilState } from 'recoil';
 import styled from 'styled-components';
 import { fetchCoins } from '../api';
-import Coin from './Coin';
+import { isDarkAtom } from '../atoms';
+
+interface IMode {
+  mode: boolean;
+}
+
+const ModeBtnWrapper = styled.div`
+  position: absolute;
+  top: 13px;
+`;
+
+const ModeBtn = styled.button<IMode>`
+  width: 100px;
+  height: 30px;
+  cursor: pointer;
+  position: relative;
+  background-color: ${(props) => props.theme.accentColor};
+  transition: background-color 300ms ease-in-out;
+  border-radius: 20px;
+`;
+
+const ModeBall = styled.div<IMode>`
+  position: absolute;
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  background-color: ${(props) => props.theme.bgColor};
+  border: 1px solid white;
+  top: 0px;
+  right: ${(props) => (props.mode ? '5px' : '65px')};
+  transition: background-color 300ms ease-in-out, right 400ms ease-in-out;
+`;
+
 const Container = styled.div`
   padding: 0px 20px;
   margin: 0 auto;
@@ -21,6 +53,7 @@ const Title = styled.h1`
   font-size: 48px;
   font-weight: 700;
   font-style: italic;
+  text-shadow: 6px 6px 0px rgba(0, 0, 0, 0.4);
   color: ${(props) => props.theme.accentColor};
 `;
 
@@ -34,18 +67,18 @@ const CoinElement = styled.li`
   color: ${(props) => props.theme.bgColor};
   margin: 15px 20px;
   border-radius: 20px;
-
+  background-color: ${(props) => props.theme.overviewColor};
   a {
     padding: 20px;
     transition: color 0.2s ease-in;
     display: flex;
     align-items: center;
-    color: ${(props) => props.theme.bgColor};
+    color: ${(props) => props.theme.accentColor};
   }
   &:hover {
     a {
       cursor: pointer;
-      color: ${(props) => props.theme.accentColor};
+      color: ${(props) => props.theme.bgColor};
     }
   }
 `;
@@ -72,6 +105,8 @@ interface ICoin {
 }
 const Coins = () => {
   const { isLoading, data } = useQuery<ICoin[]>('getAllCoins', fetchCoins);
+  const currentMode = useRecoilValue(isDarkAtom);
+  const modeSetterFn = useSetRecoilState(isDarkAtom);
   return (
     <Container>
       <Helmet>
@@ -79,6 +114,14 @@ const Coins = () => {
       </Helmet>
       <Header>
         <Title>UPbit</Title>
+        <ModeBtnWrapper>
+          <ModeBtn
+            mode={currentMode}
+            onClick={() => modeSetterFn((prevMode) => !prevMode)}
+          >
+            <ModeBall mode={currentMode}></ModeBall>
+          </ModeBtn>
+        </ModeBtnWrapper>
       </Header>
       {isLoading ? (
         <Loader>Loading....</Loader>
