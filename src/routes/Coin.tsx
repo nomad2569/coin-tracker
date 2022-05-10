@@ -1,15 +1,11 @@
-import { useEffect } from 'react';
-import { useState } from 'react';
-import { Helmet } from 'react-helmet';
+import { Helmet, HelmetProvider } from 'react-helmet-async';
 import { useQuery } from 'react-query';
-import { Link, Navigate, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useMatch } from 'react-router-dom';
-import { Outlet, Route, useLocation, useParams } from 'react-router-dom';
+import { Outlet, useLocation, useParams } from 'react-router-dom';
 import styled from 'styled-components';
 import { fetchCoinInfo, fetchCoinTickers } from '../api';
 import { InfoInterface, PriceInterface } from '../Interface';
-import Chart from './Chart';
-import Price from './Price';
 import { FaHome, FaCoins, FaChartLine } from 'react-icons/fa';
 import { useRecoilValue, useSetRecoilState } from 'recoil';
 import { isDarkAtom } from '../atoms';
@@ -23,35 +19,40 @@ const Container = styled.div`
   align-items: center;
 `;
 interface IMode {
-  mode: boolean;
+  mode?: boolean;
 }
 const ModeBtnWrapper = styled.div`
   position: absolute;
-  top: -62px;
-  left: 30px;
+  top: -17px;
+  left: -150px;
 `;
 
 const ModeBtn = styled.button<IMode>`
-  width: 100px;
-  height: 30px;
+  width: 60px;
+  height: 60px;
   cursor: pointer;
   position: relative;
   background-color: ${(props) => props.theme.accentColor};
   transition: background-color 300ms ease-in-out;
-  border-radius: 20px;
+  border-radius: 50%;
+  &:hover {
+    box-shadow: 6px 6px 0px rgba(0, 0, 0, 0.2);
+  }
 `;
 
 const ModeBall = styled.div<IMode>`
   position: absolute;
   width: 25px;
   height: 25px;
-  border-radius: 50%;
-  background-color: ${(props) => props.theme.bgColor};
-  border: 1px solid white;
-  top: 0px;
-  right: ${(props) => (props.mode ? '5px' : '65px')};
-  transition: background-color 300ms ease-in-out, right 400ms ease-in-out;
+  font-size: 30px;
+  font-weight: 700;
+  color: ${(props) => props.theme.bgColor};
+  top: ${(props) => (props.mode ? '20px' : '0px')};
+  right: 15px;
+  transition: background-color 400ms ease-in-out, top 400ms ease-in-out,
+    color 400ms ease-in-out;
 `;
+
 const Header = styled.header`
   height: 15vh;
   display: flex;
@@ -59,6 +60,7 @@ const Header = styled.header`
 `;
 const HomeBtn = styled.span`
   font-size: 48px;
+
   cursor: pointer;
   color: white;
 
@@ -77,6 +79,7 @@ const Title = styled.h1`
   font-style: italic;
   color: ${(props) => props.theme.accentColor};
   position: relative;
+  transition: background-color 400ms ease-in-out, color 400ms ease-in-out;
   text-shadow: 6px 6px 0px rgba(0, 0, 0, 0.2);
 `;
 const Tabs = styled.div`
@@ -85,6 +88,7 @@ const Tabs = styled.div`
   justify-content: space-evenly;
   position: absolute;
   right: -150px;
+  transition: background-color 400ms ease-in-out, color 400ms ease-in-out;
   top: -7px;
 `;
 
@@ -120,6 +124,7 @@ const Overview = styled.div`
   border-radius: 20px;
   display: flex;
   justify-content: space-between;
+  transition: background-color 400ms ease-in-out, color 400ms ease-in-out;
   margin-top: 20px;
 `;
 
@@ -150,6 +155,7 @@ const OverviewItem = styled.div`
   span {
     color: ${(props) => props.theme.textColor};
     margin-top: 5px;
+    transition: background-color 400ms ease-in-out, color 400ms ease-in-out;
   }
 `;
 
@@ -177,9 +183,7 @@ const Coin = () => {
     useQuery<PriceInterface>(
       ['price', coinId],
       () => fetchCoinTickers(coinId),
-      {
-        refetchInterval: 1000,
-      }
+      {}
     );
   const loading = infoLoading || tickersLoading;
   const lastUpdatedDate = tickersData?.last_updated.split('T')[0];
@@ -192,11 +196,17 @@ const Coin = () => {
   }
   return (
     <Container>
-      <Helmet>
-        <title>
-          {state?.name ? state.name : loading ? 'Loading....' : infoData?.name}
-        </title>
-      </Helmet>
+      <HelmetProvider>
+        <Helmet>
+          <title>
+            {state?.name
+              ? state.name
+              : loading
+              ? 'Loading....'
+              : infoData?.name}
+          </title>
+        </Helmet>
+      </HelmetProvider>
       <Header>
         <Title>
           <HomeBtn onClick={handleHomeClick}>
@@ -204,10 +214,12 @@ const Coin = () => {
           </HomeBtn>
           <ModeBtnWrapper>
             <ModeBtn
-              mode={currentMode}
+              mode={currentMode ? currentMode : undefined}
               onClick={() => modeSetterFn((prevMode) => !prevMode)}
             >
-              <ModeBall mode={currentMode}></ModeBall>
+              <ModeBall mode={currentMode ? currentMode : undefined}>
+                {currentMode ? '↓' : '↑'}
+              </ModeBall>
             </ModeBtn>
           </ModeBtnWrapper>
           <Tabs>
@@ -217,7 +229,7 @@ const Coin = () => {
               </Link>
             </Tab>
             <Tab isActive={priceMatch !== null}>
-              <Link to={`/${coinId}/price`}>
+              <Link to={`/${coinId}/price`} state={{ coinId }}>
                 <FaCoins />
               </Link>
             </Tab>

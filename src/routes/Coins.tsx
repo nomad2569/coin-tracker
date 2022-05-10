@@ -1,4 +1,5 @@
-import { Helmet } from 'react-helmet';
+import { Helmet } from 'react-helmet-async';
+import { HelmetProvider } from 'react-helmet-async';
 import { useQuery } from 'react-query';
 import { Link } from 'react-router-dom';
 import { useRecoilValue, useSetRecoilState } from 'recoil';
@@ -7,34 +8,38 @@ import { fetchCoins } from '../api';
 import { isDarkAtom } from '../atoms';
 
 interface IMode {
-  mode: boolean;
+  mode?: boolean;
 }
 
 const ModeBtnWrapper = styled.div`
   position: absolute;
-  top: 13px;
 `;
 
 const ModeBtn = styled.button<IMode>`
-  width: 100px;
-  height: 30px;
+  width: 60px;
+  height: 60px;
   cursor: pointer;
   position: relative;
   background-color: ${(props) => props.theme.accentColor};
   transition: background-color 300ms ease-in-out;
-  border-radius: 20px;
+  border-radius: 50%;
+  right: -130px;
+  &:hover {
+    box-shadow: 6px 6px 0px rgba(0, 0, 0, 0.2);
+  }
 `;
 
 const ModeBall = styled.div<IMode>`
   position: absolute;
   width: 25px;
   height: 25px;
-  border-radius: 50%;
-  background-color: ${(props) => props.theme.bgColor};
-  border: 1px solid white;
-  top: 0px;
-  right: ${(props) => (props.mode ? '5px' : '65px')};
-  transition: background-color 300ms ease-in-out, right 400ms ease-in-out;
+  font-size: 30px;
+  font-weight: 700;
+  left: 0px;
+  color: ${(props) => props.theme.bgColor};
+  top: ${(props) => (props.mode ? '20px' : '0px')};
+  transition: background-color 400ms ease-in-out, top 400ms ease-in-out,
+    color 400ms ease-in-out;
 `;
 
 const Container = styled.div`
@@ -109,17 +114,19 @@ const Coins = () => {
   const modeSetterFn = useSetRecoilState(isDarkAtom);
   return (
     <Container>
-      <Helmet>
-        <title>UPbit</title>
-      </Helmet>
+      <HelmetProvider>
+        <Helmet>
+          <title>UPbit</title>
+        </Helmet>
+      </HelmetProvider>
       <Header>
         <Title>UPbit</Title>
         <ModeBtnWrapper>
           <ModeBtn
-            mode={currentMode}
+            mode={currentMode ? currentMode : undefined}
             onClick={() => modeSetterFn((prevMode) => !prevMode)}
           >
-            <ModeBall mode={currentMode}></ModeBall>
+            <ModeBall mode={currentMode ? currentMode : undefined}></ModeBall>
           </ModeBtn>
         </ModeBtnWrapper>
       </Header>
